@@ -1,0 +1,11 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (¡importante!)
+.env
+.env.local
+.env.*.local
+
+# Archivos de build
+dist/
+dist-ssr/

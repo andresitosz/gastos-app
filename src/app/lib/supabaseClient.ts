@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Reemplaza estos valores con tus credenciales de Supabase
-const supabaseUrl = 'https://jnrbbrkajadjljxiagvf.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpucmJicmthamFkamxqeGlhZ3ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MDk0NTIsImV4cCI6MjA5MDI4NTQ1Mn0.NP2pXw7PXP2JudQrfPMnkltsNEVlFD6_pZoXfs89Kqk'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Faltan las variables de entorno de Supabase');
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
