@@ -10,7 +10,7 @@ interface StatsCardProps {
 
 export function StatsCard({ title, amount, type, percentage }: StatsCardProps) {
   const Icon = type === 'income' ? TrendingUp : type === 'expense' ? TrendingDown : Wallet;
-  
+
   const colorClass = 
     type === 'income' 
       ? 'text-green-500' 
@@ -25,10 +25,12 @@ export function StatsCard({ title, amount, type, percentage }: StatsCardProps) {
       ? 'bg-red-100' 
       : 'bg-blue-100';
 
-  const formatAmount = (value: number) => {
-    return new Intl.NumberFormat('es-ES', {
+  // ✅ LA FUNCIÓN VA AQUÍ - DENTRO DEL COMPONENTE
+  const formatCOP = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'COP',
+      minimumFractionDigits: 0,
     }).format(Math.abs(value));
   };
 
@@ -41,7 +43,12 @@ export function StatsCard({ title, amount, type, percentage }: StatsCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{formatAmount(amount)}</div>
+        <div className="text-2xl font-bold">
+          {type === 'income' 
+            ? amount  // ← Número normal, sin formato de moneda
+            : formatCOP(amount)
+          }
+        </div>
         {percentage !== undefined && (
           <p className="text-xs text-gray-500 mt-1">
             {percentage > 0 ? '+' : ''}{percentage.toFixed(1)}% desde el mes pasado

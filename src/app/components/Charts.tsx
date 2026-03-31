@@ -25,33 +25,13 @@ const categoryColors: Record<string, string> = {
 };
 
 export function Charts({ expenses }: ChartsProps) {
-  // Si no hay gastos, mostrar mensaje
-  if (!expenses || expenses.length === 0) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Gastos por Categoría</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-500 py-8">
-              No hay gastos registrados
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Gastos por Día</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-500 py-8">
-              No hay datos para mostrar
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const formatCOP = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
 
   // Agrupar gastos por categoría
   const expensesByCategory = expenses.reduce((acc, expense) => {
@@ -79,154 +59,106 @@ export function Charts({ expenses }: ChartsProps) {
     
     return {
       date: new Date(date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }),
-      total: Number(total) || 0  // Asegurar que sea número
+      total: Number(total) || 0
     };
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+  // ✅ CALCULAR TOTAL DE ÚLTIMOS 7 DÍAS
+  const total7Days = dailyData.reduce((sum, day) => sum + day.total, 0);
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-  // Verificar si hay datos para el gráfico de barras
   const hasBarData = dailyData.some(d => d.total > 0);
 
-  return (
-    <div className="space-y-6">
-      {/* Resumen rápido */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>💰 Total Gastado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-red-600">
-              {formatCurrency(totalExpenses)}
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              {expenses.length} {expenses.length === 1 ? 'gasto' : 'gastos'} registrados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>📊 Promedio por gasto</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-blue-600">
-              {formatCurrency(expenses.length > 0 ? totalExpenses / expenses.length : 0)}
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Por transacción
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
+  if (expenses.length === 0) {
+    return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gráfico de pastel - Gastos por categoría */}
         <Card>
           <CardHeader>
-            <CardTitle>🥧 Gastos por Categoría</CardTitle>
+            <CardTitle>Gastos por Categoría</CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryData.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                No hay gastos registrados
-              </p>
-            ) : (
-              <>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                
-                {/* Leyenda */}
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {categoryData.map((cat) => (
-                    <div key={cat.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        <span>{cat.name}</span>
-                      </div>
-                      <span className="font-semibold">{formatCurrency(cat.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+            <p className="text-center text-gray-500 py-8">No hay gastos registrados</p>
           </CardContent>
         </Card>
-
-        {/* Gráfico de barras - Gastos por día */}
         <Card>
           <CardHeader>
-            <CardTitle>📅 Gastos por Día</CardTitle>
+            <CardTitle>Gastos por Día</CardTitle>
           </CardHeader>
           <CardContent>
-            {!hasBarData ? (
-              <p className="text-center text-gray-500 py-8">
-                No hay gastos en los últimos 7 días
-              </p>
-            ) : (
-              <div className="space-y-4">
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={dailyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="date" 
-                      angle={-45} 
-                      textAnchor="end" 
-                      height={60}
-                      interval={0}
-                    />
-                    <YAxis 
-                      tickFormatter={(value) => `$${value}`}
-                      allowDecimals={false}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [formatCurrency(value), 'Gasto']}
-                      labelFormatter={(label) => `Fecha: ${label}`}
-                    />
-                    <Bar 
-                      dataKey="total" 
-                      fill="#F59E0B" 
-                      name="Gastos" 
-                      radius={[8, 8, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-center text-sm text-gray-500">
-                  Total últimos 7 días: {formatCurrency(dailyData.reduce((sum, d) => sum + d.total, 0))}
-                </p>
-              </div>
-            )}
+            <p className="text-center text-gray-500 py-8">No hay datos para mostrar</p>
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Gráfico de pastel */}
+      <Card>
+        <CardHeader>
+          <CardTitle>🥧 Gastos por Categoría</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={categoryData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                dataKey="value"
+              >
+                {categoryData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatCOP(value as number)} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {categoryData.map((cat) => (
+              <div key={cat.name} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                  <span>{cat.name}</span>
+                </div>
+                <span className="font-semibold">{formatCOP(cat.value)}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gráfico de barras */}
+      <Card>
+        <CardHeader>
+          <CardTitle>📅 Gastos por Día</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!hasBarData ? (
+            <p className="text-center text-gray-500 py-8">No hay gastos en los últimos 7 días</p>
+          ) : (
+            <div className="space-y-4">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" angle={-45} textAnchor="end" height={60} interval={0} />
+                  <YAxis tickFormatter={(value) => formatCOP(value)} />
+                  <Tooltip formatter={(value) => formatCOP(value as number)} />
+                  <Bar dataKey="total" fill="#F59E0B" name="Gastos" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <p className="text-center text-sm text-gray-500">
+                Total últimos 7 días: {formatCOP(total7Days)}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
