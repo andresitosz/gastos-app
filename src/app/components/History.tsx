@@ -12,7 +12,7 @@ interface MonthlyHistory {
   year: number;
   month: number;
   total_amount: number;
-  expenses_data: any[];
+  transactions_data: any[];
 }
 
 export function History() {
@@ -105,7 +105,7 @@ export function History() {
           year,
           month,
           total_amount: totalAmount,
-          expenses_data: expenses || []
+          transactions_data: expenses || []
         });
       
       if (insertError) throw insertError;
@@ -145,15 +145,6 @@ export function History() {
               Historial Mensual
             </h1>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={archiveCurrentMonth}
-            className="gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Archivar mes actual (prueba)
-          </Button>
         </div>
 
         {/* Mostrar error si existe */}
@@ -203,7 +194,7 @@ export function History() {
                     ${(item.total_amount || 0).toLocaleString()}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
-                    {item.expenses_data?.length || 0} gastos registrados
+                    {item.transactions_data?.length || 0} gastos registrados
                   </p>
                 </div>
               ))}
@@ -233,8 +224,8 @@ export function History() {
               </div>
               
               <div className="flex-1 overflow-y-auto p-4">
-                {selectedMonth.expenses_data && selectedMonth.expenses_data.length > 0 ? (
-                  selectedMonth.expenses_data.map((expense: any, index: number) => {
+                {selectedMonth.transactions_data && selectedMonth.transactions_data.length > 0 ? (
+                  selectedMonth.transactions_data.map((expense: any, index: number) => {
                     const categoryEmojis: Record<string, string> = {
                       comida: '🍕',
                       transporte: '🚗',

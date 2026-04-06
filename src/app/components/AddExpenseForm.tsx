@@ -1,125 +1,152 @@
 // src/app/components/AddExpenseForm.tsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useAuth } from '../contexts/AuthContext';
-import { toast } from 'sonner';
-
-const CATEGORIES = [
-  { value: 'comida', label: '🍕 Comida' },
-  { value: 'transporte', label: '🚗 Transporte' },
-  { value: 'servicios', label: '💡 Servicios' },
-  { value: 'general', label: '📦 General' },
-  { value: 'entretenimiento', label: '🎬 Entretenimiento' },
-  { value: 'salud', label: '🏥 Salud' },
-  { value: 'educación', label: '📚 Educación' }
-];
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 export function AddExpenseForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [type, setType] = useState<"expense" | "income">("expense");
   const [formData, setFormData] = useState({
-    description: '',
-    amount: '',
-    category: 'general',
-    date_expense: new Date().toISOString().split('T')[0]
+    description: "",
+    amount: "",
+    category: "general",
+    date_expense: new Date().toISOString().split("T")[0],
   });
+
+  const categories = {
+    expense: [
+      { value: "comida", label: "🍕 Comida", color: "text-red-600" },
+      { value: "transporte", label: "🚗 Transporte", color: "text-red-600" },
+      { value: "servicios", label: "💡 Servicios", color: "text-red-600" },
+      { value: "entretenimiento", label: "🎬 Entretenimiento", color: "text-red-600" },
+      { value: "salud", label: "🏥 Salud", color: "text-red-600" },
+      { value: "educación", label: "📚 Educación", color: "text-red-600" },
+      { value: "general", label: "📦 General", color: "text-red-600" },
+    ],
+    income: [
+      { value: "salario", label: "💰 Salario", color: "text-green-600" },
+      { value: "freelance", label: "💻 Freelance", color: "text-green-600" },
+      { value: "inversion", label: "📈 Inversión", color: "text-green-600" },
+      { value: "regalo", label: "🎁 Regalo", color: "text-green-600" },
+      { value: "reembolso", label: "🔄 Reembolso", color: "text-green-600" },
+      { value: "general", label: "📦 General", color: "text-green-600" },
+    ],
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.description || !formData.amount) {
-      toast.error('Por favor completa todos los campos');
-      return;
-    }
-
-    if (parseFloat(formData.amount) <= 0) {
-      toast.error('El monto debe ser mayor a 0');
-      return;
-    }
+    if (!user) return;
 
     setLoading(true);
-
     try {
-      const { error } = await supabase
-        .from('expenses')
-        .insert([
-          {
-            description: formData.description,
-            amount: parseFloat(formData.amount),
-            category: formData.category,
-            date_expense: formData.date_expense,
-            user_id: user?.id,
-            create_at: new Date().toISOString()
-          }
-        ]);
+      const { error } = await supabase.from("transactions").insert({
+        user_id: user.id,
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        date_expense: formData.date_expense,
+        type: type,
+      });
 
       if (error) throw error;
-      
-      toast.success('💰 Gasto agregado correctamente');
-      navigate('/');
+
+      toast.success(
+        type === "expense" ? "💰 Gasto agregado" : "💵 Ingreso agregado"
+      );
+      navigate("/");
     } catch (error: any) {
-      console.error('Error:', error);
-      toast.error(error.message || 'Error al agregar el gasto');
+      toast.error("Error al guardar: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8">
-      <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Nuevo Gasto
-      </h1>
-      <p className="text-center text-gray-500 mb-8">
-        Registra tus gastos de forma rápida y sencilla
-      </p>
+    <div className="bg-white rounded-2xl shadow-xl p-6">
+      <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+        Nueva Transacción
+      </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Selector de tipo */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <button
+          type="button"
+          onClick={() => setType("expense")}
+          className={`p-4 rounded-xl flex items-center justify-center gap-2 transition-all ${
+            type === "expense"
+              ? "bg-red-500 text-white shadow-lg scale-105"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <TrendingDown className="h-5 w-5" />
+          <span className="font-medium">Gasto</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setType("income")}
+          className={`p-4 rounded-xl flex items-center justify-center gap-2 transition-all ${
+            type === "income"
+              ? "bg-green-500 text-white shadow-lg scale-105"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <TrendingUp className="h-5 w-5" />
+          <span className="font-medium">Ingreso</span>
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Descripción *
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descripción
           </label>
           <input
             type="text"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Ej: Compra en supermercado, Pago de renta, etc."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Ej: Netflix, Salario, etc."
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Monto *
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Monto (COP)
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              placeholder="0.00"
-              className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <input
+            type="number"
+            required
+            step="0.01"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="0"
+            value={formData.amount}
+            onChange={(e) =>
+              setFormData({ ...formData, amount: e.target.value })
+            }
+          />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Categoría
           </label>
           <select
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) =>
+              setFormData({ ...formData, category: e.target.value })
+            }
           >
-            {CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value}>
+            {categories[type].map((cat) => (
+              <option key={cat.value} value={cat.value} className={cat.color}>
                 {cat.label}
               </option>
             ))}
@@ -127,34 +154,35 @@ export function AddExpenseForm() {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Fecha del gasto
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Fecha
           </label>
           <input
             type="date"
-            value={formData.date_expense}
-            onChange={(e) => setFormData({ ...formData, date_expense: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={formData.date_expense}
+            onChange={(e) =>
+              setFormData({ ...formData, date_expense: e.target.value })
+            }
           />
         </div>
 
-        <div className="flex gap-4 pt-4">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Guardando...' : '💾 Guardar gasto'}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-3 rounded-xl font-medium text-white transition-all ${
+            type === "expense"
+              ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
+              : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+          } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+        >
+          {loading
+            ? "Guardando..."
+            : type === "expense"
+            ? "Agregar Gasto"
+            : "Agregar Ingreso"}
+        </button>
       </form>
     </div>
   );

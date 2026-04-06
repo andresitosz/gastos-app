@@ -42,7 +42,7 @@ export function useMonthlyReset(
               year: currentYear,
               month: currentMonth,
               total_amount: totalAmount,
-              expenses_data: expenses
+              transactions_data: expenses
             });
           
           localStorage.setItem(`last_reset_${userId}`, new Date().toISOString());
