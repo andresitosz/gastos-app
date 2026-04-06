@@ -185,14 +185,14 @@ useEffect(() => {
             <p className="text-sm text-gray-600 mt-1">
               Hola, {user?.email}
             </p>
-            <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+            {/*<p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               Mostrando gastos de {currentMonthName} {new Date().getFullYear()}
             </p>
-            {/* Debug: mostrar total de gastos en BD */}
+            {/* Debug: mostrar total de gastos en BD 
             <p className="text-xs text-gray-400 mt-1">
               📊 Total en BD: {allExpenses.length} gastos | Este mes: {expenses.length}
-            </p>
+            </p>*/}
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <Link to="/add" className="flex-1 sm:flex-none">
