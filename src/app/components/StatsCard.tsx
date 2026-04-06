@@ -8,10 +8,8 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ title, amount, type }: StatsCardProps) {
-  // Asegurar que amount es número
   const numericAmount = typeof amount === 'number' ? amount : Number(amount) || 0;
   
-  // Formatear con separadores de miles (ej: 53200 -> 53.200)
   const formatWithThousands = (value: number) => {
     return value.toLocaleString('es-CO', {
       minimumFractionDigits: 0,
@@ -20,24 +18,23 @@ export function StatsCard({ title, amount, type }: StatsCardProps) {
   };
 
   const getIcon = () => {
-    if (type === 'expense') return <TrendingDown className="h-5 w-5 text-red-500" />;
-    if (type === 'income') return <TrendingUp className="h-5 w-5 text-green-500" />;
-    return <DollarSign className="h-5 w-5 text-blue-500" />;
+    if (type === 'expense') return <TrendingDown className="h-5 w-5 text-rose-400" />;
+    if (type === 'income') return <TrendingUp className="h-5 w-5 text-emerald-400" />;
+    return <DollarSign className="h-5 w-5 text-blue-400" />;
   };
 
+  // ✅ SOLO CAMBIO AQUÍ: textos más suaves
   const getAmountColor = () => {
-    if (type === 'expense') return 'text-red-600';
-    if (type === 'income') return 'text-green-600';
-    if (type === 'balance' && numericAmount < 0) return 'text-red-600';
-    if (type === 'balance' && numericAmount > 0) return 'text-green-600';
+    if (type === 'expense') return 'text-rose-500'; // rojo más suave (antes red-600)
+    if (type === 'income') return 'text-emerald-500'; // verde más suave (antes green-600)
+    if (type === 'balance' && numericAmount < 0) return 'text-rose-500';
+    if (type === 'balance' && numericAmount > 0) return 'text-emerald-500';
     return 'text-gray-900';
   };
 
-  // Determinar qué mostrar según el título
   const isTransactionCount = title === '📊 Transacciones';
   
   if (isTransactionCount) {
-    // Para Transacciones: solo el número, sin $ ni separadores
     return (
       <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
@@ -51,7 +48,6 @@ export function StatsCard({ title, amount, type }: StatsCardProps) {
     );
   }
 
-  // Para Gastos, Ingresos y Balance
   const getPrefix = () => {
     if (type === 'expense' && numericAmount > 0) return '- $';
     if (type === 'income' && numericAmount > 0) return '+ $';

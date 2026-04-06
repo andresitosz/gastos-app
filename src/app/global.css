@@ -1,0 +1,49 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Transiciones suaves */
+* {
+  transition: background-color 0.3s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Modo oscuro - estilos adicionales */
+.dark-mode {
+  color-scheme: dark;
+}
+
+/* Ajustes específicos para modo oscuro */
+.dark-mode .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, #0f172a, #1e1b4b, #0f172a) !important;
+}
+
+.dark-mode .shadow-lg,
+.dark-mode .shadow-md,
+.dark-mode .shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus,
+.dark-mode textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.dark-mode button.bg-white {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.dark-mode button.bg-white:hover {
+  background-color: #334155;
+}

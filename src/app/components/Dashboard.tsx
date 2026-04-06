@@ -8,6 +8,7 @@ import { Plus, LogOut, Loader2, Calendar } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { Charts } from './Charts';
 import { toast } from 'sonner';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Dashboard() {
   const { user, signOut } = useAuth();
@@ -177,6 +178,7 @@ export function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
+             {/*<ThemeToggle />*/}
             <Link to="/add" className="flex-1 sm:flex-none">
               <Button className="w-full gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Plus className="h-5 w-5" />
