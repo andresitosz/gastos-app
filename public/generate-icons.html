@@ -1,30 +1,30 @@
-<!-- public/generate-icons.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Generar Íconos</title>
 </head>
 <body>
+    <h1>Generando íconos...</h1>
     <canvas id="canvas192" width="192" height="192"></canvas>
     <canvas id="canvas512" width="512" height="512"></canvas>
     <script>
-        function createIcon(size) {
+        function downloadIcon(size) {
             const canvas = document.getElementById(`canvas${size}`);
             const ctx = canvas.getContext('2d');
             
-            // Fondo gradiente azul
+            // Fondo gradiente
             const grad = ctx.createLinearGradient(0, 0, size, size);
             grad.addColorStop(0, '#3b82f6');
             grad.addColorStop(1, '#8b5cf6');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, size, size);
             
-            // Dibujar símbolo de dinero
+            // Símbolo de dinero
             ctx.fillStyle = 'white';
             ctx.font = `bold ${size * 0.5}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('$', size/2, size/2);
+            ctx.fillText('💰', size/2, size/2);
             
             // Descargar
             const link = document.createElement('a');
@@ -33,8 +33,8 @@
             link.click();
         }
         
-        createIcon(192);
-        createIcon(512);
+        downloadIcon(192);
+        downloadIcon(512);
     </script>
 </body>
 </html>
