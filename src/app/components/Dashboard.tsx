@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
-import { Plus, LogOut, Loader2, Calendar } from 'lucide-react';
+import { Plus, LogOut, Loader2, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { Charts } from './Charts';
 import { toast } from 'sonner';
@@ -17,6 +17,16 @@ export function Dashboard() {
   const [currentMonthExpenses, setCurrentMonthExpenses] = useState(0);
   const [currentMonthIncomes, setCurrentMonthIncomes] = useState(0);
   const [allTransactions, setAllTransactions] = useState([]);
+  
+  // Estados para modales
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [deletingTransaction, setDeletingTransaction] = useState<any>(null);
+  const [editFormData, setEditFormData] = useState({
+    description: '',
+    amount: '',
+    category: '',
+    date_expense: '',
+  });
 
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const currentMonthName = monthNames[new Date().getMonth()];
@@ -133,6 +143,67 @@ export function Dashboard() {
     }
   };
 
+  // Abrir modal de edición
+  const openEditModal = (transaction: any) => {
+    setEditingTransaction(transaction);
+    setEditFormData({
+      description: transaction.description,
+      amount: transaction.amount.toString(),
+      category: transaction.category,
+      date_expense: transaction.date_expense,
+    });
+  };
+
+  // Confirmar eliminación
+  const confirmDelete = (transaction: any) => {
+    setDeletingTransaction(transaction);
+  };
+
+  // Ejecutar eliminación
+  const handleDelete = async () => {
+    if (!deletingTransaction) return;
+    
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', deletingTransaction.id);
+      
+      if (error) throw error;
+      
+      toast.success('Transacción eliminada');
+      setDeletingTransaction(null);
+      loadTransactions();
+    } catch (error: any) {
+      toast.error('Error al eliminar: ' + error.message);
+    }
+  };
+
+  // Ejecutar edición
+  const handleEdit = async () => {
+    if (!editingTransaction) return;
+    
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          description: editFormData.description,
+          amount: parseFloat(editFormData.amount),
+          category: editFormData.category,
+          date_expense: editFormData.date_expense,
+        })
+        .eq('id', editingTransaction.id);
+      
+      if (error) throw error;
+      
+      toast.success('Transacción actualizada');
+      setEditingTransaction(null);
+      loadTransactions();
+    } catch (error: any) {
+      toast.error('Error al actualizar: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       archivePreviousMonthIfNeeded();
@@ -178,7 +249,6 @@ export function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-             {/*<ThemeToggle />*/}
             <Link to="/add" className="flex-1 sm:flex-none">
               <Button className="w-full gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Plus className="h-5 w-5" />
@@ -197,7 +267,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards - Actualizadas para mostrar ingresos y gastos */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <StatsCard title="💸 Gastos" amount={currentMonthExpenses} type="expense" />
           <StatsCard title="💵 Ingresos" amount={currentMonthIncomes} type="income" />
@@ -249,12 +319,29 @@ export function Dashboard() {
                         </span>
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="flex items-center gap-2">
                       <p className={`font-bold text-sm sm:text-base ${
                         isExpense ? 'text-red-600' : 'text-green-600'
                       }`}>
                         {isExpense ? '-' : '+'}${(transaction.amount || 0).toLocaleString()}
                       </p>
+                      {/* Botones de acción */}
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openEditModal(transaction)}
+                          className="p-1 text-blue-500 hover:text-blue-700 transition-colors"
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => confirmDelete(transaction)}
+                          className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -272,6 +359,110 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Edición */}
+      {editingTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h2 className="text-xl font-bold mb-4">Editar Transacción</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Descripción</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Monto</label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={editFormData.amount}
+                  onChange={(e) => setEditFormData({...editFormData, amount: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Categoría</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={editFormData.category}
+                  onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                >
+                  <option value="comida">🍕 Comida</option>
+                  <option value="transporte">🚗 Transporte</option>
+                  <option value="servicios">💡 Servicios</option>
+                  <option value="entretenimiento">🎬 Entretenimiento</option>
+                  <option value="salud">🏥 Salud</option>
+                  <option value="educación">📚 Educación</option>
+                  <option value="salario">💰 Salario</option>
+                  <option value="freelance">💻 Freelance</option>
+                  <option value="inversion">📈 Inversión</option>
+                  <option value="regalo">🎁 Regalo</option>
+                  <option value="reembolso">🔄 Reembolso</option>
+                  <option value="general">📦 General</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Fecha</label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={editFormData.date_expense}
+                  onChange={(e) => setEditFormData({...editFormData, date_expense: e.target.value})}
+                />
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={handleEdit}
+                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setEditingTransaction(null)}
+                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      {deletingTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-sm w-full p-6">
+            <h2 className="text-xl font-bold mb-4">Confirmar Eliminación</h2>
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de eliminar "{deletingTransaction.description}" por ${deletingTransaction.amount.toLocaleString()}?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDelete}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700"
+              >
+                Eliminar
+              </button>
+              <button
+                onClick={() => setDeletingTransaction(null)}
+                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
