@@ -8,13 +8,18 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
     "@supabase/supabase-js": "^2.100.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.487.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.13.2",
     "recharts": "^2.15.2",
-    "sonner": "^2.0.3"
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.7.0",
