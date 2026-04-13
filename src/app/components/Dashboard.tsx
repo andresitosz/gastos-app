@@ -4,11 +4,10 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
-import { Plus, LogOut, Loader2, Calendar, Pencil, Trash2 } from 'lucide-react';
+import { Plus, LogOut, Loader2, Calendar, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { Charts } from './Charts';
 import { toast } from 'sonner';
-import { ThemeToggle } from './ThemeToggle';
 
 export function Dashboard() {
   const { user, signOut } = useAuth();
@@ -16,7 +15,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [currentMonthExpenses, setCurrentMonthExpenses] = useState(0);
   const [currentMonthIncomes, setCurrentMonthIncomes] = useState(0);
-  const [allTransactions, setAllTransactions] = useState([]);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   
   // Estados para modales
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
@@ -31,64 +30,12 @@ export function Dashboard() {
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const currentMonthName = monthNames[new Date().getMonth()];
 
-  // Archivar mes anterior automáticamente
-  const archivePreviousMonthIfNeeded = async () => {
-    if (!user) return;
-    
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1;
-    
-    const lastArchived = localStorage.getItem(`last_archived_${user.id}`);
-    const lastArchivedDate = lastArchived ? new Date(lastArchived) : null;
-    
-    if (!lastArchivedDate || 
-        lastArchivedDate.getFullYear() !== currentYear ||
-        lastArchivedDate.getMonth() + 1 !== currentMonth) {
-      
-      const { data: existing } = await supabase
-        .from('monthly_history')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('year', currentYear)
-        .eq('month', currentMonth)
-        .single();
-      
-      if (!existing) {
-        const lastMonth = new Date(currentYear, currentMonth - 2, 1);
-        const lastMonthYear = lastMonth.getFullYear();
-        const lastMonthNumber = lastMonth.getMonth() + 1;
-        
-        const startDate = new Date(lastMonthYear, lastMonthNumber - 1, 1).toISOString().split('T')[0];
-        const endDate = new Date(lastMonthYear, lastMonthNumber, 0).toISOString().split('T')[0];
-        
-        const { data: transactionsData } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('date_expense', startDate)
-          .lte('date_expense', endDate);
-        
-        if (transactionsData && transactionsData.length > 0) {
-          const totalAmount = transactionsData.reduce((sum, t) => sum + t.amount, 0);
-          
-          await supabase
-            .from('monthly_history')
-            .insert({
-              user_id: user.id,
-              year: lastMonthYear,
-              month: lastMonthNumber,
-              total_amount: totalAmount,
-              transactions_data: transactionsData
-            });
-          
-          console.log(`✅ Archivado automático: ${lastMonthNumber}/${lastMonthYear}`);
-        }
-        
-        localStorage.setItem(`last_archived_${user.id}`, new Date().toISOString());
-      }
-    }
-  };
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const loadTransactions = async () => {
     try {
@@ -100,9 +47,6 @@ export function Dashboard() {
         .eq('user_id', user?.id);
 
       if (allError) throw allError;
-      
-      console.log('📊 Total transacciones:', allData?.length || 0);
-      setAllTransactions(allData || []);
       
       const today = new Date();
       const year = today.getFullYear();
@@ -123,7 +67,6 @@ export function Dashboard() {
       
       setTransactions(transaccionesDelMes);
       
-      // Calcular gastos e ingresos del mes
       const expenses = transaccionesDelMes
         .filter(t => t.type === 'expense')
         .reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -152,11 +95,13 @@ export function Dashboard() {
       category: transaction.category,
       date_expense: transaction.date_expense,
     });
+    setOpenMenuId(null);
   };
 
   // Confirmar eliminación
   const confirmDelete = (transaction: any) => {
     setDeletingTransaction(transaction);
+    setOpenMenuId(null);
   };
 
   // Ejecutar eliminación
@@ -206,7 +151,6 @@ export function Dashboard() {
 
   useEffect(() => {
     if (user) {
-      archivePreviousMonthIfNeeded();
       loadTransactions();
     }
   }, [user]);
@@ -233,7 +177,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 pb-24">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
@@ -249,26 +193,11 @@ export function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <Link to="/add" className="flex-1 sm:flex-none">
-              <Button className="w-full gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Plus className="h-5 w-5" />
-                Nueva Transacción
-              </Button>
-            </Link>
-            <Link to="/history">
-              <Button variant="outline" className="gap-2">
-                <Calendar className="h-5 w-5" />
-                Historial
-              </Button>
-            </Link>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/*<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <StatsCard title="💸 Gastos" amount={currentMonthExpenses} type="expense" />
           <StatsCard title="💵 Ingresos" amount={currentMonthIncomes} type="income" />
           <StatsCard 
@@ -277,12 +206,12 @@ export function Dashboard() {
             type={balance >= 0 ? "income" : "expense"} 
           />
           <StatsCard title="📊 Transacciones" amount={transactionCount} type="balance" />
-        </div>
+        </div>*/}
 
         {/* Charts */}
-        <div className="mb-6 sm:mb-8">
+        {/*<div className="mb-6 sm:mb-8">
           <Charts transactions={transactions} />
-        </div>
+        </div>*/}
 
         {/* Lista de transacciones */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -303,44 +232,60 @@ export function Dashboard() {
                 const isExpense = transaction.type === 'expense';
                 
                 return (
-                  <div key={transaction.id} className="p-3 sm:p-4 flex justify-between items-center hover:bg-gray-50">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm sm:text-base truncate">
-                        {transaction.description}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          isExpense ? 'bg-red-100' : 'bg-green-100'
-                        }`}>
-                          {emoji} {transaction.category}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          📅 {transaction.date_expense ? new Date(transaction.date_expense).toLocaleDateString() : 'Sin fecha'}
-                        </span>
+                  <div key={transaction.id} className="p-3 sm:p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm sm:text-base">
+                          {transaction.description}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            isExpense ? 'bg-red-100' : 'bg-green-100'
+                          }`}>
+                            {emoji} {transaction.category}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            📅 {transaction.date_expense ? new Date(transaction.date_expense).toLocaleDateString() : 'Sin fecha'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <p className={`font-bold text-sm sm:text-base ${
-                        isExpense ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {isExpense ? '-' : '+'}${(transaction.amount || 0).toLocaleString()}
-                      </p>
-                      {/* Botones de acción */}
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => openEditModal(transaction)}
-                          className="p-1 text-blue-500 hover:text-blue-700 transition-colors"
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => confirmDelete(transaction)}
-                          className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      
+                      <div className="flex items-center gap-2">
+                        <p className={`font-bold text-sm sm:text-base ${
+                          isExpense ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {isExpense ? '-' : '+'}${(transaction.amount || 0).toLocaleString()}
+                        </p>
+                        
+                        {/* Menú de 3 puntos */}
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === transaction.id ? null : transaction.id);
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <MoreVertical className="h-5 w-5" />
+                          </button>
+                          
+                          {openMenuId === transaction.id && (
+                            <div className="absolute right-0 mt-1 bg-white rounded-lg shadow-lg border z-10 overflow-hidden min-w-[120px]">
+                              <button
+                                onClick={() => openEditModal(transaction)}
+                                className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Pencil className="h-4 w-4" /> Editar
+                              </button>
+                              <button
+                                onClick={() => confirmDelete(transaction)}
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Trash2 className="h-4 w-4" /> Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
