@@ -1,59 +1,148 @@
-/* src/index.css */
+/* src/index.css - Modo oscuro GRIS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos globales personalizados */
-@layer base {
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+/* Modo oscuro global - GRIS */
+.dark-mode {
+  background-color: #1f1f1f;
+  color: #e0e0e0;
 }
 
-/* Estilos para scrollbar */
-@layer components {
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
+.dark-mode body {
+  background-color: #1f1f1f;
+  color: #e0e0e0;
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Fondo de todas las páginas - GRIS */
+.dark-mode .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, #1f1f1f, #2a2a2a, #1a1a1a) !important;
 }
 
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+/* Tarjetas - GRIS más claro */
+.dark-mode .bg-white {
+  background-color: #2a2a2a !important;
+  color: #e0e0e0 !important;
+}
+
+/* Áreas grises */
+.dark-mode .bg-gray-50,
+.dark-mode .bg-gray-100 {
+  background-color: #1f1f1f !important;
+}
+
+/* Bordes */
+.dark-mode .border-gray-200,
+.dark-mode .border-gray-300 {
+  border-color: #3a3a3a !important;
+}
+
+/* Textos grises */
+.dark-mode .text-gray-500,
+.dark-mode .text-gray-600,
+.dark-mode .text-gray-400 {
+  color: #a0a0a0 !important;
+}
+
+/* Textos oscuros - se vuelven blancos */
+.dark-mode .text-gray-900,
+.dark-mode .text-gray-800,
+.dark-mode .text-gray-700 {
+  color: #ffffff !important;
+}
+
+/* Inputs y selects */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #1a1a1a !important;
+  color: #e0e0e0 !important;
+  border-color: #3a3a3a !important;
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus,
+.dark-mode textarea:focus {
+  border-color: #6b7280 !important;
+  outline: none;
+}
+
+/* Botones outline */
+.dark-mode button.border {
+  border-color: #3a3a3a !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode button.border:hover {
+  background-color: #3a3a3a !important;
+}
+
+/* Modales */
+.dark-mode .fixed.bg-black {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Los colores rojo y verde se mantienen */
+.dark-mode .text-red-600,
+.dark-mode .text-rose-500,
+.dark-mode .text-rose-600 {
+  color: #f87171 !important;
+}
+
+.dark-mode .text-green-600,
+.dark-mode .text-emerald-500,
+.dark-mode .text-emerald-600 {
+  color: #4ade80 !important;
+}
+
+/* Enlaces y botones */
+.dark-mode a {
+  color: inherit;
+}
+
+.dark-mode button {
+  color: inherit;
+}
+
+/* Scrollbar en modo oscuro - GRIS */
+.dark-mode ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+/* Sombras en modo oscuro */
+.dark-mode .shadow-lg,
+.dark-mode .shadow-md,
+.dark-mode .shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .bg-red-100,
+.dark-mode .bg-green-100 {
+  background-color: #3a2a2a !important; /* Fondo rojo oscuro para gastos */
+  color: #fca5a5 !important; /* Texto rojo claro */
+}
+
+.dark-mode .bg-green-100 {
+  background-color: #1a3a2a !important; /* Fondo verde oscuro para ingresos */
+  color: #86efac !important; /* Texto verde claro */
+}
+
+/* Para cualquier etiqueta de categoría */
+.dark-mode span.text-xs.px-2.py-0.5.rounded-full {
+  background-color: #2a2a2a !important;
+  color: #e0e0e0 !important;
 }
